@@ -41,7 +41,7 @@ $(document).ready(function() {
       //direction
       ((Math.random() * 2) - 1) * Math.PI,
       //velocity
-      6000
+      10
     );
     $('body').append(mass.$node);
     

@@ -4,9 +4,7 @@ var Mass = function createMass(mass, x, y, direction, velocity) {
   this.y = y;  
   this.direction = direction;
   this.velocity = velocity;
-  //momentum is the resistance to change Mo=mv
-  this.momentum;
-  this.dtime = 100;
+  this.dtime = 50;
   
   this.$node = $('<span class="mass"></span>');
   
@@ -67,15 +65,15 @@ Mass.prototype.updatePosition = function() {
   
   //heart of the call
   setTimeout(this.updatePosition.bind(this), this.dtime);
-  //console.log("Old Velocity: " , this.velocity);
-  
+  console.log("Old Velocity: ", this.velocity);
+  console.log("new Trajec: ", newTrajec);
   //move mass 
   this.x += newTrajec[0];
   this.y += newTrajec[1];
   this.setPosition(this.x, this.y);
-  this.velocity = this.pythag(newTrajec[0], newTrajec[1]);
+  this.velocity = this.pythag(newTrajec[0], newTrajec[1]) / (this.dtime/1000);
   this.direction = Math.atan2(newTrajec[1], newTrajec[0]);
-  //console.log("New Velocity: " , this.velocity); 
+  console.log("New Velocity: " , this.velocity); 
   //console.log(resultCalculations);
   //console.log("Grav force: ", gravForce);
   //debugger;
@@ -101,8 +99,8 @@ Mass.prototype.calGravForce = function(resultArr) {
 };
 
 Mass.prototype.calAccel = function(gravity, currentTraj) {
-  var dvx = (gravity[0]/this.mass) * this.dtime  + currentTraj[0];
-  var dvy = (gravity[1]/this.mass) * this.dtime  + currentTraj[1];
+  var dvx = (gravity[0]/this.mass) * this.dtime / 1000 + currentTraj[0];
+  var dvy = (gravity[1]/this.mass) * this.dtime / 1000 + currentTraj[1];
   return [dvx, dvy];
 };
 
