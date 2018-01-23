@@ -8,20 +8,26 @@ var Mass = function createMass(mass, x, y, direction, velocity) {
   
   this.$node = $('<span class="mass"></span>');
   
-  Mass.prototype.setSize.call(this);  
+  this.$visualCoverNode = $('<span class="cover"></span>');
+
+  this.size = Mass.prototype.setSize.call(this);
+
+  this.$resultNode = this.$node.append(this.$visualCoverNode);
+
   Mass.prototype.setPosition.call(this, x, y);
   Mass.prototype.updatePosition.call(this);
 };
 
 Mass.prototype.setSize = function() {
-  var size = this.mass/500;
-  if (size < 5) {
-    size = 5;
-  } else if (size > 300) {
-    size = 300;
+  var size = this.mass / 1000;
+  if (size < 3) {
+    size = 3;
+  } else if (size > 250) {
+    size = 250;
   }
   
-  this.$node.css({ 'border-width': size, 'border-style': 'solid', 'border-color': 'blue', 'border-radius': size });
+  this.$visualCoverNode.css({ 'width': size, 'height': size, 'border-radius': size, 'top': -size*0.5 });
+  return size;
 };
 
 Mass.prototype.setPosition = function(x, y) {
@@ -49,7 +55,7 @@ Mass.prototype.updatePosition = function() {
   var resultCalculations = [];
   for (var i = 0; i < massesInGalaxy.length; i++) {
     var distanceTo = this.getDistanceTo(massesInGalaxy[i]);
-    var tempTuple = [massesInGalaxy[i].mass, distanceTo, this.getAngleTo(massesInGalaxy[i]), (this.mass + massesInGalaxy[i].mass)/Math.pow(distanceTo, 1.1)];
+    var tempTuple = [massesInGalaxy[i].mass, distanceTo, this.getAngleTo(massesInGalaxy[i]), (this.mass + massesInGalaxy[i].mass)/Math.pow(distanceTo, 1.2)];
     if (distanceTo > 0) {
       resultCalculations.push(tempTuple);
     }
@@ -65,15 +71,15 @@ Mass.prototype.updatePosition = function() {
   
   //heart of the call
   setTimeout(this.updatePosition.bind(this), this.dtime);
-  console.log("Old Velocity: ", this.velocity);
-  console.log("new Trajec: ", newTrajec);
+  //console.log("Old Velocity: ", this.velocity);
+  //console.log("new Trajec: ", newTrajec);
   //move mass 
   this.x += newTrajec[0];
   this.y += newTrajec[1];
   this.setPosition(this.x, this.y);
   this.velocity = this.pythag(newTrajec[0], newTrajec[1]) / (this.dtime/1000);
   this.direction = Math.atan2(newTrajec[1], newTrajec[0]);
-  console.log("New Velocity: " , this.velocity); 
+  //console.log("New Velocity: " , this.velocity); 
   //console.log(resultCalculations);
   //console.log("Grav force: ", gravForce);
   //debugger;

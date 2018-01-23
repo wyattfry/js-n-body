@@ -3,8 +3,8 @@ $(document).ready(function() {
 
   var SUN = new Mass(
     1e6,
-    $("body").width() * 0.3,
-    $("body").height() * 0.3,
+    $("body").width() * 0.5,
+    $("body").height() * 0.5,
     
     //direction
     ((Math.random() * 2) - 1) * Math.PI,
@@ -34,16 +34,16 @@ $(document).ready(function() {
       return rand / 6;
     };
     var mass = new massMakerFunction(
-      gaussian() * 20000,
+      gaussian() * 40000,
       $("body").width() * Math.random(),
       $("body").height() * Math.random(),
       
       //direction
       ((Math.random() * 2) - 1) * Math.PI,
       //velocity
-      10
+      gaussian() * 60
     );
-    $('body').append(mass.$node);
+    $('body').append(mass.$resultNode);
     
     window.masses.push(mass);
   });
