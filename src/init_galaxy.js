@@ -54,16 +54,30 @@ $(document).ready(function() {
     window.masses.push(mass);
   });
 
-  var downX, downY;
+  var downX, downY, ll;
   //click on map to create planet with velocity
   $('body').on('mousedown', function() {
     downX = event.pageX;
     downY = event.pageY;
-    var ll = new LaunchLine(downX, downY);
+    ll = new LaunchLine(downX, downY - 35);
     $('body').append(ll.$node);
   });
   
+  $('body').on('mousemove', function() {
+    if (ll) {
+    
+      ll.redraw.call(ll, event.pageX, event.pageY - 35);
+      console.log(ll.$lineNode);
+    }
+  });
+  
   $('body').on('mouseup', function(event) {
+    //removes launch line
+    
+    ll.$node.remove();
+    ll = undefined;
+    
+    //initiate velocity and direction for new mass
     var upX = event.pageX;
     var upY = event.pageY;
     var velocity = pythag(downX - upX, downY - upY);

@@ -61,7 +61,7 @@ Mass.prototype.updatePosition = function() {
     }
   }
   
-  var currTrajec = this.intertia();
+  var currTrajec = this.inertia();
   
   //calculating force due to gravity
   var gravForce = this.calGravForce(resultCalculations);
@@ -87,7 +87,7 @@ Mass.prototype.updatePosition = function() {
 };
 
 //given current location and velocity and direction where is it going to be next
-Mass.prototype.intertia = function() {
+Mass.prototype.inertia = function() {
   
   var dx = Math.cos(this.direction) * this.velocity * this.dtime / 1000;
   var dy = Math.sin(this.direction) * this.velocity * this.dtime / 1000;
