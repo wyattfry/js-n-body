@@ -1,13 +1,13 @@
-var Mass = function createMass(mass, x, y, direction, velocity) {
+var Mass = function createMass(mass, x, y, direction, velocity, collisionOn, gravExp) {
   this.mass = mass;
   this.x = x;
   this.y = y;  
   this.direction = direction;
   this.velocity = velocity;
   this.dtime = 50;
-  
+  this.collisionOn = collisionOn;
+  this.gravityExponent = gravExp;
   this.$node = $('<span class="mass"></span>');
-  
   this.$visualCoverNode = $('<span class="cover"></span>');
 
   this.size = Mass.prototype.setSize.call(this);
@@ -19,14 +19,13 @@ var Mass = function createMass(mass, x, y, direction, velocity) {
 };
 
 Mass.prototype.setSize = function() {
-  var size = this.mass / 1000;
+  var size = 25 * Math.log(this.mass / 1000);
   if (size < 3) {
     size = 3;
-  } else if (size > 250) {
-    size = 250;
-  }
-  
-  this.$visualCoverNode.css({ 'width': size, 'height': size, 'border-radius': size, 'top': -size*0.5 });
+  } 
+    
+  this.$visualCoverNode.css({ 'width': size, 'height': size, 'border-radius': size, 'top': -size * 0.5 });
+  this.$visualCoverNode.css('border-style', this.collisionOn ? 'solid' : 'dashed');
   return size;
 };
 
@@ -53,10 +52,15 @@ Mass.prototype.updatePosition = function() {
   var massesInGalaxy = window.masses;
   // stores tuples of [mass,distance,angle, gravForce]
   var resultCalculations = [];
+  var collisionArr = []
   for (var i = 0; i < massesInGalaxy.length; i++) {
     var distanceTo = this.getDistanceTo(massesInGalaxy[i]);
-    var tempTuple = [massesInGalaxy[i].mass, distanceTo, this.getAngleTo(massesInGalaxy[i]), (this.mass + massesInGalaxy[i].mass)/Math.pow(distanceTo, 1.2)];
+    var tempTuple = [massesInGalaxy[i].mass, distanceTo, this.getAngleTo(massesInGalaxy[i]), (this.mass + massesInGalaxy[i].mass)/Math.pow(distanceTo, this.gravityExponent)];
+    // check for collisions here
     if (distanceTo > 0) {
+      if ((distanceTo - this.size / 2 - massesInGalaxy[i].size / 2) < 10) {
+        collisionArr.push([massesInGalaxy[i], distanceTo, this.getAngleTo(massesInGalaxy[i])]);
+      }
       resultCalculations.push(tempTuple);
     }
   }
@@ -68,6 +72,11 @@ Mass.prototype.updatePosition = function() {
   
   //calculating how force affects velocity
   var newTrajec = this.calAccel(gravForce, currTrajec);
+  
+  //checking collision
+  if (this.collisionOn && collisionArr.length > 0) {
+    newTrajec = this.calcCollision(collisionArr[0], newTrajec); 
+  }
   
   //heart of the call
   setTimeout(this.updatePosition.bind(this), this.dtime);
@@ -84,6 +93,19 @@ Mass.prototype.updatePosition = function() {
   //console.log("Grav force: ", gravForce);
   //debugger;
   return resultCalculations;
+};
+
+//check for collisions, collision details if so
+// otherObjTuple [Obj, distanceTo, angleTo] 
+Mass.prototype.calcCollision = function(otherObjTuple, newTrajec) {
+  var phi = otherObjTuple[2];
+  var tempOtherMass = otherObjTuple[0];
+  var num = (this.velocity * Math.cos(this.direction - phi) * (this.mass - tempOtherMass.mass) + 2 * (tempOtherMass.mass * tempOtherMass.velocity)* Math.cos(tempOtherMass.direction - phi));
+  var denom = this.mass + tempOtherMass.mass;
+  var vx = (num/denom) * Math.cos(phi) - this.velocity* Math.sin(this.direction - phi) * Math.sin(phi);
+  
+  var vy = (num/denom) * Math.sin(phi) - this.velocity* Math.sin(this.direction - phi) * Math.cos(phi);
+  return [vx * this.dtime / 1000, vy * this.dtime / 1000];
 };
 
 //given current location and velocity and direction where is it going to be next

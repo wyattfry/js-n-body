@@ -6,9 +6,11 @@ body{
   background-color:#000;
   font-size: 18px;
   overflow: hidden;
+  font-family: 'Raleway', sans-serif;
+  color: white;
 }
 body, a:link, a:visited, a:active{
-  color: lightblue;
+  color: white;
 }
 .title, .addMassButton{
   padding:5px 12px;
@@ -54,4 +56,15 @@ body, a:link, a:visited, a:active{
   border-style: solid;
   width:1px;
   height:1px;
+}
+div.display {
+  padding: 20px;
+  border: 10px;
+  border-color: white;
+}
+span.displayText {
+  display: block;
+}
+span.displayGrav {
+  display: block;
 }

@@ -1,5 +1,5 @@
-var MassWithTrail = function createTrail(mass, x, y, direction, velocity, interval, trailLen) {
-  Mass.call(this, mass, x, y, direction, velocity);
+var MassWithTrail = function createTrail(mass, x, y, direction, velocity, collisionOn, gravExp, interval, trailLen) {
+  Mass.call(this, mass, x, y, direction, velocity, collisionOn, gravExp);
   this.trailInterval = interval || 1000;
   this.trailArray = [];
   this.trailLength = trailLen || 5;
