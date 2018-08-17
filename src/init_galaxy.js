@@ -1,35 +1,186 @@
+/*
+  Trying to implement mobile compability 
+  good example to follow:
+  https://rbyers.github.io/paint.js
+
+*/
+
 $(document).ready(function() {
-  window.dancers = [];
-
-  $('.addDancerButton').on('click', function(event) {
-    /* This function sets up the click handlers for the create-dancer
-     * buttons on dancefloor.html. You should only need to make one small change to it.
-     * As long as the "data-dancer-maker-function-name" attribute of a
-     * class="addDancerButton" DOM node matches one of the names of the
-     * maker functions available in the global scope, clicking that node
-     * will call the function to make the dancer.
-     */
-
-    /* dancerMakerFunctionName is a string which must match
-     * one of the dancer maker functions available in global scope.
-     * A new object of the given type will be created and added
-     * to the stage.
-     */
-    var dancerMakerFunctionName = $(this).data('dancer-maker-function-name');
-
-    // get the maker function for the kind of dancer we're supposed to make
-    var dancerMakerFunction = window[dancerMakerFunctionName];
-
-    // make a dancer with a random position
-
-    var dancer = new dancerMakerFunction(
-      $("body").height() * Math.random(),
-      $("body").width() * Math.random(),
-      Math.random() * 1000
-    );
-    $('body').append(dancer.$node);
     
-    window.dancers.push(dancer);
+    // Events for keyboard / mouse user
+    var userEvents = {
+        down: 'mousedown',
+        up: 'mouseup',
+        move: 'mousemove',
+    };
+    
+    var usingTouch = false;
+    window.oncontextmenu = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    };
+    
+    // Reassign user events if not using mouse/keyboard but touch screen
+    window.addEventListener('touchstart', () => {
+        if (!usingTouch) {
+            console.log('Switching to touch interface');
+            usingTouch = true;
+            userEvents = {
+                down: 'touchstart',
+                up: 'touchend',
+                move: 'touchmove',
+            };
+        }
+    });
+    
+  window.masses = [];
+  
+  var gravExp = 1.2;
+  var collisionOn = true;
+  
+  $('.displayText').html('c: collision toggle<br>g: grav +<br>f: grav -');
+  $('.gravDisplay').html('Fg~(m1+m2)/r^' + gravExp.toFixed(1));
+  
+  //Sun initiation
+  var SUN = new Mass(
+    1e7,
+    $("body").width() * 0.5,
+    $("body").height() * 0.5,
+    0,
+    0,
+    collisionOn,
+    gravExp 
+  );
+  $('body').append(SUN.$node);
+  window.masses.push(SUN);
+
+  // gaussian function for normal distribution
+  var gaussian = function gaussianRand() {
+    var rand = 0;
+
+    for (var i = 0; i < 6; i += 1) {
+      rand += Math.random();
+    }
+
+    return rand / 6;
+  };
+  
+  // pythagorean theorem: return length of hypotenuse
+  var pythag = function(x, y) {
+    return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)); 
+  };
+  
+  //Add mass dependent on function
+  $('.addMassButton').on(userEvents.up, function(event) {
+    event.preventDefault();
+    console.log('up event', userEvents.up);
+    var massMakerFunctionName = $(this).data('mass-maker-function-name');
+
+    // get the maker function for the kind of planet we're supposed to make
+    var massMakerFunction = window[massMakerFunctionName];
+    
+    var mass = new massMakerFunction(
+      gaussian() * 40000,
+      $("body").width() * Math.random(),
+      $("body").height() * Math.random(),
+      
+      //direction
+      ((Math.random() * 2) - 1) * Math.PI,
+      //velocity
+      gaussian() * 60
+    );
+    $('body').append(mass.$resultNode);
+    
+    window.masses.push(mass);
+  });
+
+  var downX, downY, ll, premass;
+  //click on map to create planet with velocity
+  $('body').on(userEvents.down, function(e) {
+      e.preventDefault();
+      console.log('down event', e);
+    downX = event.pageX;
+    downY = event.pageY;
+    ll = new LaunchLine(downX, downY - 123);
+    $('body').append(ll.$node);
+    
+    premass = new PreMass(downX, downY, {'border-style': collisionOn ? 'solid' : 'dashed'});
+    $('body').append(premass.$resultNode);
+  });
+  
+  $('body').on(userEvents.move, function(e) {
+      e.preventDefault();
+      console.log('move event', userEvents.move);
+    if (ll) {
+    
+      ll.redraw.call(ll, event.pageX, event.pageY - 123);
+      //console.log(ll.$lineNode);
+    }
+  });
+  
+  
+  $('body').keypress(function (event) {
+    // toggle collision
+    if (event.key === 'c') {
+      collisionOn = !collisionOn;
+      for (var i = 0; i < masses.length; i++) {
+        masses[i].collisionOn = collisionOn;
+        masses[i].$visualCoverNode.css('border-style', collisionOn ? 'solid' : 'dashed');
+      }
+    }
+    
+    // increase gravity
+    if (event.key === 'g') {
+      gravExp -= 0.1;
+      // console.log('gravExp', gravExp);
+      for (var i = 0; i < masses.length; i++) {
+        masses[i].gravityExponent = gravExp;
+        $('.gravDisplay').html('Fg~(m1+m2)/r^' + gravExp.toFixed(1));
+      }
+    }
+    
+    // decrease gravity
+    if (event.key === 'f') {
+      gravExp += 0.1;
+      // console.log('gravExp', gravExp);
+      for (var i = 0; i < masses.length; i++) {
+        masses[i].gravityExponent = gravExp;
+        $('.gravDisplay').html('Fg~(m1+m2)/r^' + gravExp.toFixed(1));
+      }
+    }
+  });
+  
+  $('body').on(userEvents.up, function(event) {
+      event.preventDefault();
+      console.log('up event', userEvents.up);
+    //remove premass
+    var newMass = premass.mass;
+    premass.$resultNode.remove();
+    premass.keepGrowing = false;
+    premass = undefined;
+    
+    //removes launch line
+    
+    ll.$node.remove();
+    ll = undefined;
+    
+    //initiate velocity and direction for new mass
+    var upX = event.pageX;
+    var upY = event.pageY;
+    var velocity = pythag(downX - upX, downY - upY);
+    var direction = Math.atan2(downY - upY, downX - upX);
+    
+    var mass = new MassWithTrail(newMass,
+    downX,
+    downY,
+    direction,
+    velocity,
+    collisionOn,
+    gravExp);
+    
+    $('body').append(mass.$resultNode);
+    window.masses.push(mass);
   });
 });
 
