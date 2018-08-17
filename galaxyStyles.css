@@ -8,6 +8,10 @@ body{
   overflow: hidden;
   font-family: 'Raleway', sans-serif;
   color: white;
+  /* touch-action: none; /* Trying to implement mobile compability */
+    height: 100%;
+    width: 100%;
+    position: fixed;
 }
 body, a:link, a:visited, a:active{
   color: white;

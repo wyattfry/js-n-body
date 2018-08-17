@@ -1,33 +1,39 @@
-var MassWithTrail = function createTrail(mass, x, y, direction, velocity, collisionOn, gravExp, interval, trailLen) {
-  Mass.call(this, mass, x, y, direction, velocity, collisionOn, gravExp);
-  this.trailInterval = interval || 1000;
-  this.trailArray = [];
-  this.trailLength = trailLen || 5;
+var PreMass = function PreMass(x, y, style) {
+  this.style = style;
   
-  MassWithTrail.prototype.dropTrail.call(this);
+  this.mass = 1000;
+  this.$node = $('<span class="mass"></span>');
+  this.keepGrowing = true;
+  
+  PreMass.prototype.setPosition.call(this, x, y);
+  
+  this.$visualCoverNode = $('<span class="cover"></span>');
+  this.$visualCoverNode.css(this.style);
+  this.$resultNode = this.$node.append(this.$visualCoverNode);
+  
+  PreMass.prototype.grow.call(this, this.mass);
 };
 
-MassWithTrail.prototype = Object.create(Mass.prototype);
-MassWithTrail.prototype.constructor = MassWithTrail;
-
-MassWithTrail.prototype.dropTrail = function() {
-  setTimeout(this.dropTrail.bind(this), this.trailInterval);
-  
-  //remove and delete trailDots if above certain number
-  if (this.trailArray.length > this.trailLength) {
-    
-    this.trailArray.shift().remove();
+PreMass.prototype.grow = function() {
+  if (this.keepGrowing) {
+    setTimeout(this.grow.bind(this), 50);  
   }
   
-  //create and drop new dot
-  var $trailDot = $('<span class="trailDot"></span>');
-    
-  $trailDot.css({
-    top: this.y,
-    left: this.x
-  });
+  var size = 25 * Math.log(this.mass / 1000);
+  if (size < 3) {
+    size = 3;
+  } 
   
-  this.trailArray.push($trailDot);
-  $('body').append($trailDot);
+  // console.log(size);
+  this.$visualCoverNode.css({ 'width': size, 'height': size, 'border-radius': size, 'top': -size * 0.5 });
+  // console.log(this.$visualCoverNode.css());
+  this.mass *= 1.08;
 };
 
+PreMass.prototype.setPosition = function(x, y) {
+  var styleSettings = {
+    top: y,
+    left: x
+  };
+  this.$node.css(styleSettings);
+};
