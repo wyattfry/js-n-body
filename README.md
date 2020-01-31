@@ -1,4 +1,4 @@
-# subclass-dance-party
+# javascript n-body simulator
 A 2D gravity simulator in pure JavaScript
 
 ![Demo of gravity simulator](gravity_demo.gif)
